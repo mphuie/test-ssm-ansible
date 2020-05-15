@@ -1,0 +1,76 @@
+- hosts: localhost
+  tasks:
+
+# Deb family copy/install
+
+
+
+  - name: copy Ubuntu installer
+    copy:
+      src: NessusAgent-7.6.2-ubuntu1110_amd64.deb
+      dest: /tmp/nessusagent.deb
+    when: ansible_distribution == 'Ubuntu'
+
+  - name: Install Nessus agent for Ubuntu
+    apt: 
+      force_apt_get: yes
+      deb: /tmp/nessusagent.deb
+      state: present
+    become: yes
+    when: ansible_distribution == 'Ubuntu'
+
+# Amazon Linux (unique nessus package) copy/install
+  - name: copy Amazon Linux installer
+    copy:
+      src: NessusAgent-7.6.2-amzn.x86_64.rpm
+      dest: /tmp/nessusagent.rpm
+    when: ansible_distribution == 'Amazon'
+
+  - name: Install nessus agent for Amazon Linux
+    yum:
+      name: /tmp/nessusagent.rpm
+      state: present
+    become: yes
+    when: ansible_distribution == 'Amazon'
+
+# Other RHEL copy/install-- disabled since we don't need it and was causing issues. 
+
+#  - name: copy RHEL installer
+#    copy:
+#      src: NessusAgent-7.6.2-es8.x86_64.rpm
+#      dest: /tmp/nessusagent.rpm
+#      when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+#  - name: Install nessus agent for RHEL distros
+#    yum:
+#      name: /tmp/nessusagent.rpm
+#      state: present
+#    become: yes
+#    when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+# Link to salesforce tenant, validate link, start service, enable start at boot
+
+
+  - name: check agent status
+    shell: /opt/nessus_agent/sbin/nessuscli agent status | cat
+    register: result
+    ignore_errors: yes
+    become: yes
+
+
+
+  - name: Link nessus agent to salesforce tenant
+    shell: /opt/nessus_agent/sbin/nessuscli agent link --key=5b8b279e6380337ac2a86c90d9494fdb8cb36c494b77a18c96cfc2ee167ba60d --groups={{group}} --host=acq-tableu-manager01.sfdcsec.com --port=8834
+    when: '"Not linked to a manager" in result.stdout'
+    become: yes
+
+  - name: Validate link to salesforce tenant
+    shell: /opt/nessus_agent/sbin/nessuscli agent status
+    become: yes
+
+  - name: Start nessus agent, if not started
+    service:
+      name: nessusagent
+      state: started
+      enabled: yes
+    become: yes
