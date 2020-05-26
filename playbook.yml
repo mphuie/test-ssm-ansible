@@ -6,8 +6,8 @@
 
 
   - name: copy Ubuntu installer
-    copy:
-      src: https://mhuie-public.s3-us-west-2.amazonaws.com/nessus/NessusAgent-7.6.2-ubuntu1110_amd64.deb
+    get_url:
+      url: https://mhuie-public.s3-us-west-2.amazonaws.com/nessus/NessusAgent-7.6.2-ubuntu1110_amd64.deb
       dest: /tmp/nessusagent.deb
     when: ansible_distribution == 'Ubuntu'
 
@@ -21,8 +21,8 @@
 
 # Amazon Linux (unique nessus package) copy/install
   - name: copy Amazon Linux installer
-    copy:
-      src: https://mhuie-public.s3-us-west-2.amazonaws.com/nessus/NessusAgent-7.6.2-amzn.x86_64.rpm
+    get_url:
+      url: https://mhuie-public.s3-us-west-2.amazonaws.com/nessus/NessusAgent-7.6.2-amzn.x86_64.rpm
       dest: /tmp/nessusagent.rpm
     when: ansible_distribution == 'Amazon'
 
